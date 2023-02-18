@@ -1,17 +1,21 @@
 import * as THREE from 'three';
+import CANNON from 'cannon';
+import { BlockDirection, Block } from './types';
 
 window.focus(); // Capture keys right away (by default focus is on editor)
 
-let camera, scene, renderer; // ThreeJS globals
-let world; // CannonJs world
-let lastTime; // Last timestamp of animation
-let stack; // Parts that stay solid on top of each other
-let overhangs; // Overhanging parts that fall down
+let camera: THREE.OrthographicCamera;
+let scene: THREE.Scene;
+let renderer: THREE.WebGLRenderer;
+let world: CANNON.World; // CannonJs world
+let lastTime: number; // Last timestamp of animation
+let stack: Array<Block>; // Parts that stay solid on top of each other
+let overhangs: Array<Block>; // Overhanging parts that fall down
 const boxHeight = 1; // Height of each layer
 const originalBoxSize = 3; // Original width and height of a box
-let autopilot;
-let gameEnded;
-let robotPrecision; // Determines how precise the game is on autopilot
+let autopilot: boolean;
+let gameEnded: boolean;
+let robotPrecision: number; // Determines how precise the game is on autopilot
 
 const scoreElement = document.getElementById('score');
 const instructionsElement = document.getElementById('instructions');
@@ -35,8 +39,8 @@ function init() {
   // Initialize CannonJS
   world = new CANNON.World();
   world.gravity.set(0, -10, 0); // Gravity pulls things down
-  world.broadphase = new CANNON.NaiveBroadphase();
-  world.solver.iterations = 40;
+  world.broadphase = new CANNON.NaiveBroadphase(); // 碰撞偵測
+  world.solver.iterations = 40; // 解算器跑的迴圈
 
   // Initialize ThreeJs
   const aspect = window.innerWidth / window.innerHeight;
@@ -49,11 +53,11 @@ function init() {
     height / 2, // top
     height / -2, // bottom
     0, // near plane
-    100 // far plane
+    100, // far plane
   );
 
-  /*
   // If you want to use perspective camera instead, uncomment these lines
+  /*
   camera = new THREE.PerspectiveCamera(
     45, // field of view
     aspect, // aspect ratio
@@ -68,7 +72,7 @@ function init() {
   scene = new THREE.Scene();
 
   // Foundation
-  addLayer(0, 0, originalBoxSize, originalBoxSize);
+  addLayer(0, 0, originalBoxSize, originalBoxSize, 'none');
 
   // First layer
   addLayer(-10, 0, originalBoxSize, originalBoxSize, 'x');
@@ -97,7 +101,7 @@ function startGame() {
 
   if (instructionsElement) instructionsElement.style.display = 'none';
   if (resultsElement) resultsElement.style.display = 'none';
-  if (scoreElement) scoreElement.innerText = 0;
+  if (scoreElement) scoreElement.textContent = '0';
 
   if (world) {
     // Remove every object from world
@@ -108,13 +112,13 @@ function startGame() {
 
   if (scene) {
     // Remove every Mesh from the scene
-    while (scene.children.find((c) => c.type == 'Mesh')) {
-      const mesh = scene.children.find((c) => c.type == 'Mesh');
+    while (scene.children.some((c) => c.type == 'Mesh')) {
+      const mesh = scene.children.find((c) => c.type == 'Mesh') as THREE.Mesh;
       scene.remove(mesh);
     }
 
     // Foundation
-    addLayer(0, 0, originalBoxSize, originalBoxSize);
+    addLayer(0, 0, originalBoxSize, originalBoxSize, 'none');
 
     // First layer
     addLayer(-10, 0, originalBoxSize, originalBoxSize, 'x');
@@ -127,20 +131,33 @@ function startGame() {
   }
 }
 
-function addLayer(x, z, width, depth, direction) {
+function addLayer(
+  x: number,
+  z: number,
+  width: number,
+  depth: number,
+  direction: BlockDirection,
+): void {
   const y = boxHeight * stack.length; // Add the new box one layer higher
   const layer = generateBox(x, y, z, width, depth, false);
   layer.direction = direction;
   stack.push(layer);
 }
 
-function addOverhang(x, z, width, depth) {
+function addOverhang(x: number, z: number, width: number, depth: number) {
   const y = boxHeight * (stack.length - 1); // Add the new box one the same layer
   const overhang = generateBox(x, y, z, width, depth, true);
   overhangs.push(overhang);
 }
 
-function generateBox(x, y, z, width, depth, falls) {
+function generateBox(
+  x: number,
+  y: number,
+  z: number,
+  width: number,
+  depth: number,
+  falls: boolean,
+): Block {
   // ThreeJS
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
   const color = new THREE.Color(`hsl(${30 + stack.length * 4}, 100%, 50%)`);
@@ -150,9 +167,7 @@ function generateBox(x, y, z, width, depth, falls) {
   scene.add(mesh);
 
   // CannonJS
-  const shape = new CANNON.Box(
-    new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2)
-  );
+  const shape = new CANNON.Box(new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2));
   let mass = falls ? 5 : 0; // If it shouldn't fall then setting the mass to zero will keep it stationary
   mass *= width / originalBoxSize; // Reduce mass proportionately by size
   mass *= depth / originalBoxSize; // Reduce mass proportionately by size
@@ -160,15 +175,17 @@ function generateBox(x, y, z, width, depth, falls) {
   body.position.set(x, y, z);
   world.addBody(body);
 
-  return {
+  const block: Block = {
     threejs: mesh,
     cannonjs: body,
     width,
     depth,
+    direction: 'none',
   };
+  return block;
 }
 
-function cutBox(topLayer, overlap, size, delta) {
+function cutBox(topLayer: Block, overlap: number, size: number, delta: number) {
   const direction = topLayer.direction;
   const newWidth = direction == 'x' ? overlap : topLayer.width;
   const newDepth = direction == 'z' ? overlap : topLayer.depth;
@@ -177,17 +194,17 @@ function cutBox(topLayer, overlap, size, delta) {
   topLayer.width = newWidth;
   topLayer.depth = newDepth;
 
-  // Update ThreeJS model
-  topLayer.threejs.scale[direction] = overlap / size;
-  topLayer.threejs.position[direction] -= delta / 2;
+  if (direction === 'x' || direction === 'z') {
+    // Update ThreeJS model
+    topLayer.threejs.scale[direction] = overlap / size;
+    topLayer.threejs.position[direction] -= delta / 2;
 
-  // Update CannonJS model
-  topLayer.cannonjs.position[direction] -= delta / 2;
+    // Update CannonJS model
+    topLayer.cannonjs.position[direction] -= delta / 2;
+  }
 
   // Replace shape to a smaller one (in CannonJS you can't simply just scale a shape)
-  const shape = new CANNON.Box(
-    new CANNON.Vec3(newWidth / 2, boxHeight / 2, newDepth / 2)
-  );
+  const shape = new CANNON.Box(new CANNON.Vec3(newWidth / 2, boxHeight / 2, newDepth / 2));
   topLayer.cannonjs.shapes = [];
   topLayer.cannonjs.addShape(shape);
 }
@@ -221,9 +238,10 @@ function splitBlockAndAddNextOneIfOverlaps() {
   const direction = topLayer.direction;
 
   const size = direction == 'x' ? topLayer.width : topLayer.depth;
-  const delta =
-    topLayer.threejs.position[direction] -
-    previousLayer.threejs.position[direction];
+  let delta = 0;
+  if (direction === 'x' || direction === 'z') {
+    delta = topLayer.threejs.position[direction] - previousLayer.threejs.position[direction];
+  }
   const overhangSize = Math.abs(delta);
   const overlap = size - overhangSize;
 
@@ -233,13 +251,9 @@ function splitBlockAndAddNextOneIfOverlaps() {
     // Overhang
     const overhangShift = (overlap / 2 + overhangSize / 2) * Math.sign(delta);
     const overhangX =
-      direction == 'x'
-        ? topLayer.threejs.position.x + overhangShift
-        : topLayer.threejs.position.x;
+      direction == 'x' ? topLayer.threejs.position.x + overhangShift : topLayer.threejs.position.x;
     const overhangZ =
-      direction == 'z'
-        ? topLayer.threejs.position.z + overhangShift
-        : topLayer.threejs.position.z;
+      direction == 'z' ? topLayer.threejs.position.z + overhangShift : topLayer.threejs.position.z;
     const overhangWidth = direction == 'x' ? overhangSize : topLayer.width;
     const overhangDepth = direction == 'z' ? overhangSize : topLayer.depth;
 
@@ -252,7 +266,7 @@ function splitBlockAndAddNextOneIfOverlaps() {
     const newDepth = topLayer.depth; // New layer has the same size as the cut top layer
     const nextDirection = direction == 'x' ? 'z' : 'x';
 
-    if (scoreElement) scoreElement.innerText = stack.length - 1;
+    if (scoreElement) scoreElement.textContent = (stack.length - 1).toString();
     addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
   } else {
     missedTheSpot();
@@ -267,7 +281,7 @@ function missedTheSpot() {
     topLayer.threejs.position.x,
     topLayer.threejs.position.z,
     topLayer.width,
-    topLayer.depth
+    topLayer.depth,
   );
   world.remove(topLayer.cannonjs);
   scene.remove(topLayer.threejs);
@@ -276,7 +290,7 @@ function missedTheSpot() {
   if (resultsElement && !autopilot) resultsElement.style.display = 'flex';
 }
 
-function animation(time) {
+function animation(time: number) {
   if (lastTime) {
     const timePassed = time - lastTime;
     const speed = 0.008;
@@ -284,6 +298,7 @@ function animation(time) {
     const topLayer = stack[stack.length - 1];
     const previousLayer = stack[stack.length - 2];
 
+    if (topLayer.direction == 'none') return;
     // The top level box should move if the game has not ended AND
     // it's either NOT in autopilot or it is in autopilot and the box did not yet reach the robot position
     const boxShouldMove =
@@ -291,8 +306,7 @@ function animation(time) {
       (!autopilot ||
         (autopilot &&
           topLayer.threejs.position[topLayer.direction] <
-            previousLayer.threejs.position[topLayer.direction] +
-              robotPrecision));
+            previousLayer.threejs.position[topLayer.direction] + robotPrecision));
 
     if (boxShouldMove) {
       // Keep the position visible on UI and the position in the model in sync
@@ -323,13 +337,13 @@ function animation(time) {
   lastTime = time;
 }
 
-function updatePhysics(timePassed) {
+function updatePhysics(timePassed: number) {
   world.step(timePassed / 1000); // Step the physics world
 
   // Copy coordinates from Cannon.js to Three.js
   overhangs.forEach((element) => {
-    element.threejs.position.copy(element.cannonjs.position);
-    element.threejs.quaternion.copy(element.cannonjs.quaternion);
+    element.threejs.position.copy(element.cannonjs.position as unknown as THREE.Vector3);
+    element.threejs.quaternion.copy(element.cannonjs.quaternion as unknown as THREE.Quaternion);
   });
 }
 
