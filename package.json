@@ -2,14 +2,16 @@
   "name": "stack-game-clone",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
+    "@types/cannon": "^0.1.8",
     "@types/dat.gui": "^0.7.7",
     "@types/three": "^0.149.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
@@ -37,6 +39,7 @@
   },
   "homepage": "https://github.com/KalpasWang/stack-game-clone#readme",
   "dependencies": {
+    "cannon": "^0.6.2",
     "dat.gui": "^0.7.9",
     "three": "^0.149.0"
   }

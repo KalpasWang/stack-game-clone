@@ -1,10 +1,12 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/cannon': ^0.1.8
   '@types/dat.gui': ^0.7.7
   '@types/three': ^0.149.0
   '@typescript-eslint/eslint-plugin': ^5.51.0
   '@typescript-eslint/parser': ^5.51.0
+  cannon: ^0.6.2
   dat.gui: ^0.7.9
   eslint: ^8.34.0
   eslint-config-prettier: ^8.6.0
@@ -17,10 +19,12 @@ specifiers:
   vite-plugin-eslint: ^1.8.1
 
 dependencies:
+  cannon: 0.6.2
   dat.gui: 0.7.9
   three: 0.149.0
 
 devDependencies:
+  '@types/cannon': 0.1.8
   '@types/dat.gui': 0.7.7
   '@types/three': 0.149.0
   '@typescript-eslint/eslint-plugin': 5.51.0_z4swst3wuuqk4hlme4ajzslgh4
@@ -305,6 +309,10 @@ packages:
     dependencies:
       estree-walker: 2.0.2
       picomatch: 2.3.1
+    dev: true
+
+  /@types/cannon/0.1.8:
+    resolution: {integrity: sha512-aabgPL9ho1Qov3mMnBJCTG+vTWhFrhRi/5INwsZCPhf3BwabRWz53ryffCDzRSlV4T0f4eQS0OQo5Y/RCZsngQ==}
     dev: true
 
   /@types/dat.gui/0.7.7:
@@ -604,6 +612,10 @@ packages:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
     dev: true
+
+  /cannon/0.6.2:
+    resolution: {integrity: sha512-n/7wWSXr8KOSvjad2x0fJHgpMepKjOKi+NdSnjfYyijoDBZnp4JQKgPcpv28jlXoWM+N9zVYU09J0A6Qxx+Y7w==}
+    dev: false
 
   /chalk/4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
