@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/cannon": "^0.1.8",
-    "@types/dat.gui": "^0.7.7",
+    "@types/events": "^3.0.0",
     "@types/three": "^0.149.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
@@ -23,7 +23,8 @@
     "prettier": "^2.8.4",
     "typescript": "^4.9.3",
     "vite": "^4.1.0",
-    "vite-plugin-eslint": "^1.8.1"
+    "vite-plugin-eslint": "^1.8.1",
+    "vite-plugin-glsl": "^1.1.2"
   },
   "repository": {
     "type": "git",
@@ -40,7 +41,9 @@
   "homepage": "https://github.com/KalpasWang/stack-game-clone#readme",
   "dependencies": {
     "cannon": "^0.6.2",
-    "dat.gui": "^0.7.9",
+    "events": "^3.3.0",
+    "gsap": "^3.11.4",
+    "lil-gui": "^0.18.0",
     "three": "^0.149.0"
   }
 }
