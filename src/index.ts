@@ -8,4 +8,5 @@ declare global {
 
 window.app = new Application({
   $canvas: document.getElementById('game') as HTMLCanvasElement,
+  $menu: document.getElementById('menu') as HTMLElement,
 });

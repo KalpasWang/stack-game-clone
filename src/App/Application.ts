@@ -11,6 +11,7 @@ import World from './World';
 
 export default class Application {
   $canvas: HTMLCanvasElement;
+  $menu: HTMLElement;
   time: Time;
   sizes: Sizes;
   resources: Resources;
@@ -23,8 +24,9 @@ export default class Application {
   camera!: Camera;
   light!: Light;
   world!: World;
-  constructor(_options: { $canvas: HTMLCanvasElement }) {
+  constructor(_options: { $canvas: HTMLCanvasElement; $menu: HTMLElement }) {
     this.$canvas = _options.$canvas;
+    this.$menu = _options.$menu;
 
     this.time = new Time();
     this.sizes = new Sizes();
@@ -36,6 +38,7 @@ export default class Application {
     this.setCamera();
     this.setLight();
     this.setWorld();
+    this.$menu.addEventListener('click', this.startGame.bind(this));
   }
 
   setConfig() {
@@ -100,5 +103,12 @@ export default class Application {
       resources: this.resources,
     });
     this.scene.add(this.world.container);
+  }
+
+  startGame() {
+    this.$menu.style.opacity = '0';
+    this.$menu.addEventListener('transitionend', () => {
+      this.$menu.style.visibility = 'hidden';
+    });
   }
 }
