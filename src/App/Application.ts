@@ -57,11 +57,14 @@ export default class Application {
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.$canvas,
+      antialias: true,
     });
 
     const { width, height } = this.sizes.viewport;
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
 
     this.sizes.on('resize', () => {
       const { width, height } = this.sizes.viewport;
@@ -78,7 +81,7 @@ export default class Application {
       renderer: this.renderer,
     });
 
-    this.scene.add(this.camera.container);
+    this.scene.add(this.camera.scene);
 
     this.time.on('tick', () => {
       this.renderer.render(this.scene, this.camera.instance);
@@ -89,7 +92,7 @@ export default class Application {
     this.light = new Light({
       debug: this.debug,
     });
-    this.scene.add(this.light.container);
+    this.scene.add(this.light.scene);
   }
 
   setWorld() {
@@ -102,7 +105,7 @@ export default class Application {
       renderer: this.renderer,
       resources: this.resources,
     });
-    this.scene.add(this.world.container);
+    this.scene.add(this.world.scene);
   }
 
   startGame() {

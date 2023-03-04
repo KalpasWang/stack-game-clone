@@ -12,6 +12,8 @@ import { GUI } from 'lil-gui';
 import Light from '../Light';
 import Camera from '../Camera';
 import Resources from '../Resources';
+import BaseBlock from './BaseBlock';
+import Block from './Block';
 
 export default class World {
   time: Time;
@@ -21,11 +23,12 @@ export default class World {
   camera: Camera;
   resources: Resources;
   renderer: THREE.Renderer;
-  container: THREE.Object3D<THREE.Event>;
+  scene: THREE.Object3D<THREE.Event>;
   debugFolder?: GUI;
   transition!: Transition;
   controls!: Controls;
   material!: Materials;
+  stack!: Block[];
   torus!: Torus;
   plane!: Plane;
   fox!: Fox;
@@ -47,16 +50,16 @@ export default class World {
     this.renderer = _option.renderer;
     this.resources = _option.resources;
 
-    this.container = new THREE.Object3D();
-    this.container.matrixAutoUpdate = false;
+    this.scene = new THREE.Object3D();
+    this.scene.matrixAutoUpdate = false;
 
     if (this.debug) {
       this.debugFolder = this.debug.addFolder('world');
       this.debugFolder.open();
     }
 
-    this.container = new THREE.Object3D();
-    this.container.matrixAutoUpdate = false;
+    this.scene = new THREE.Group();
+    this.scene.matrixAutoUpdate = false;
 
     this.setStartingScreen();
   }
@@ -72,9 +75,10 @@ export default class World {
   async start() {
     this.setControls();
     this.setMaterial();
-    this.setTorus();
-    this.setPlane();
-    this.setFox();
+    // this.setTorus();
+    // this.setPlane();
+    // this.setFox();
+    this.setStack();
     this.setTransition();
 
     await this.transition.firstTransition();
@@ -98,7 +102,7 @@ export default class World {
       material: this.material,
       debug: this.debugFolder,
     });
-    this.container.add(this.torus.container);
+    this.scene.add(this.torus.scene);
   }
 
   setPlane() {
@@ -107,7 +111,7 @@ export default class World {
       time: this.time,
       debug: this.debugFolder,
     });
-    this.container.add(this.plane.container);
+    this.scene.add(this.plane.scene);
   }
 
   setFox() {
@@ -116,7 +120,15 @@ export default class World {
       time: this.time,
       debug: this.debugFolder,
     });
-    this.container.add(this.fox.container);
+    this.scene.add(this.fox.scene);
+  }
+
+  setStack() {
+    const base = new BaseBlock();
+    this.stack = [];
+    this.stack.push(base.baseBlock1);
+    this.stack.push(base.baseBlock2);
+    this.scene.add(base.scene);
   }
 
   setTransition() {

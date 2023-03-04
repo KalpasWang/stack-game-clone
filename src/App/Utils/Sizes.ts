@@ -8,9 +8,10 @@ export default class Sizes extends EventEmitter {
   $sizeViewport: HTMLDivElement;
   width!: number;
   height!: number;
+  aspectRatio!: number;
+
   constructor() {
     super();
-
     this.$sizeViewport = document.createElement('div');
     this.$sizeViewport.style.width = '100vw';
     this.$sizeViewport.style.height = '100vh';
@@ -33,6 +34,7 @@ export default class Sizes extends EventEmitter {
 
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    this.aspectRatio = this.width / this.height;
 
     this.trigger('resize');
   }

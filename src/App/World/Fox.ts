@@ -1,48 +1,51 @@
 import * as THREE from 'three';
 
 export default class Fox {
-    resources: any;
-    time: any;
-    debug: any;
-    container: THREE.Object3D<THREE.Event>;
-    debugFolder: any;
-    gltf: any;
-    mixer: THREE.AnimationMixer;
-    action: any;
-    constructor(_option: { resources: any; time: any; debug: any; }) {
-        this.resources = _option.resources;
-        this.time = _option.time;
-        this.debug = _option.debug;
+  resources: any;
+  time: any;
+  debug: any;
+  scene: THREE.Object3D<THREE.Event>;
+  debugFolder: any;
+  gltf: any;
+  mixer: THREE.AnimationMixer;
+  action: any;
+  constructor(_option: { resources: any; time: any; debug: any }) {
+    this.resources = _option.resources;
+    this.time = _option.time;
+    this.debug = _option.debug;
 
-        this.container = new THREE.Object3D();
-        this.container.matrixAutoUpdate = false;
+    this.scene = new THREE.Object3D();
+    this.scene.matrixAutoUpdate = false;
 
-        if (this.debug) {
-            this.debugFolder = this.debug.addFolder('fox');
-            this.debugFolder.open();
-        }
-
-        this.setFox();
+    if (this.debug) {
+      this.debugFolder = this.debug.addFolder('fox');
+      this.debugFolder.open();
     }
 
-    setFox() {
-        this.gltf = this.resources.items.fox;
-        this.gltf.scene.scale.set(0.0025, 0.0025, 0.0025);
-        this.container.add(this.gltf.scene);
+    this.setFox();
+  }
 
-        this.mixer = new THREE.AnimationMixer(this.gltf.scene);
-        this.action = this.mixer.clipAction(this.gltf.animations[2]);
-        this.action.play();
+  setFox() {
+    this.gltf = this.resources.items.fox;
+    this.gltf.scene.scale.set(0.0025, 0.0025, 0.0025);
+    this.scene.add(this.gltf.scene);
 
-        this.time.on('tick', () => {
-            this.mixer.update(this.time.delta * 0.001);
-        });
+    this.mixer = new THREE.AnimationMixer(this.gltf.scene);
+    this.action = this.mixer.clipAction(this.gltf.animations[2]);
+    this.action.play();
 
-        if (this.debug) {
-            this.debugFolder.add(this.gltf.scene, 'visible').name('visible');
-            this.debugFolder.add(this.gltf.scene.position, 'z')
-                            .step(0.001).min(-2).max(2)
-                            .name('positionZ');
-        }
+    this.time.on('tick', () => {
+      this.mixer.update(this.time.delta * 0.001);
+    });
+
+    if (this.debug) {
+      this.debugFolder.add(this.gltf.scene, 'visible').name('visible');
+      this.debugFolder
+        .add(this.gltf.scene.position, 'z')
+        .step(0.001)
+        .min(-2)
+        .max(2)
+        .name('positionZ');
     }
+  }
 }
