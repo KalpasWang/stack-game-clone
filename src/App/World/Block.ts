@@ -38,6 +38,6 @@ export default class Block {
     const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
     const material = new THREE.MeshLambertMaterial({ color: this.color });
     this.scene = new THREE.Mesh(geometry, material);
-    this.scene.position.set(this.x, this.y, this.z);
+    this.scene.position.set(this.x, this.y + this.height / 2, this.z);
   }
 }

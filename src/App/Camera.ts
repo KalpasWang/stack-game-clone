@@ -39,15 +39,18 @@ export default class Camera {
       this.height / 2,
       this.height / -2,
       0.1,
-      100,
+      1000,
     );
-    this.instance.position.set(4, 4, 4);
-    this.instance.lookAt(0, 0, 0);
+    this.instance.position.set(15, 15, 15);
+    this.instance.lookAt(0, 10, 0);
     this.scene.add(this.instance);
 
     this.sizes.on('resize', () => {
       // const { width, height } = this.sizes.viewport;
       // this.instance.aspect = width / height;
+      this.height = this.width / this.sizes.aspectRatio;
+      this.instance.top = this.height / 2;
+      this.instance.bottom = this.height / -2;
       this.instance.updateProjectionMatrix();
     });
   }

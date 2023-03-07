@@ -23,7 +23,9 @@ export default class Application {
   renderer!: THREE.WebGLRenderer;
   camera!: Camera;
   light!: Light;
+  axes!: THREE.AxesHelper;
   world!: World;
+
   constructor(_options: { $canvas: HTMLCanvasElement; $menu: HTMLElement }) {
     this.$canvas = _options.$canvas;
     this.$menu = _options.$menu;
@@ -37,6 +39,7 @@ export default class Application {
     this.setRenderer();
     this.setCamera();
     this.setLight();
+    this.setAxis();
     this.setWorld();
     this.$menu.addEventListener('click', this.startGame.bind(this));
   }
@@ -54,6 +57,7 @@ export default class Application {
 
   setRenderer() {
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x999999);
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.$canvas,
@@ -62,14 +66,14 @@ export default class Application {
 
     const { width, height } = this.sizes.viewport;
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.outputEncoding = THREE.sRGBEncoding;
 
     this.sizes.on('resize', () => {
       const { width, height } = this.sizes.viewport;
       this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.setPixelRatio(window.devicePixelRatio);
     });
   }
 
@@ -95,6 +99,11 @@ export default class Application {
     this.scene.add(this.light.scene);
   }
 
+  setAxis() {
+    this.axes = new THREE.AxesHelper(5);
+    this.scene.add(this.axes);
+  }
+
   setWorld() {
     this.world = new World({
       time: this.time,
@@ -105,6 +114,7 @@ export default class Application {
       renderer: this.renderer,
       resources: this.resources,
     });
+    this.world.scene.position.setY(-3);
     this.scene.add(this.world.scene);
   }
 

@@ -50,16 +50,13 @@ export default class World {
     this.renderer = _option.renderer;
     this.resources = _option.resources;
 
-    this.scene = new THREE.Object3D();
-    this.scene.matrixAutoUpdate = false;
-
     if (this.debug) {
       this.debugFolder = this.debug.addFolder('world');
       this.debugFolder.open();
     }
 
     this.scene = new THREE.Group();
-    this.scene.matrixAutoUpdate = false;
+    // this.scene.matrixAutoUpdate = false;
 
     this.setStartingScreen();
   }
@@ -134,7 +131,7 @@ export default class World {
   setTransition() {
     this.transition = new Transition({
       light: this.light,
-      camera: this.camera,
+      world: this,
     });
   }
 }
